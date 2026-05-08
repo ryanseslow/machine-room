@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peekable — Creative Archive Previewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    color: #ddd;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 28px;
+  }
+  .subtitle a { color: #555; text-decoration: none; }
+  .drop-zone {
+    border: 2px dashed #333;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 24px;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: #666;
+    background: #1a1a1a;
+  }
+  .drop-zone input[type="file"] {
+    display: none;
+  }
+  .drop-label {
+    font-size: 1rem;
+    color: #888;
+    pointer-events: none;
+  }
+  .drop-label strong {
+    color: #bbb;
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  .formats {
+    font-size: 0.78rem;
+    color: #555;
+    margin-top: 8px;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .controls input[type="text"] {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: #ddd;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 0.88rem;
+    flex: 1;
+    min-width: 180px;
+  }
+  .controls input[type="text"]:focus { outline: none; border-color: #555; }
+  .controls select {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: #ddd;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.88rem;
+  }
+  .controls label {
+    font-size: 0.85rem;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn {
+    background: #222;
+    border: 1px solid #333;
+    color: #bbb;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #2a2a2a; color: #fff; }
+  .stats {
+    font-size: 0.82rem;
+    color: #555;
+    margin-bottom: 16px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #181818;
+    border: 1px solid #252525;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #444; }
+  .thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    background: #111;
+  }
+  .no-thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #131313;
+    color: #333;
+    font-size: 2rem;
+  }
+  .card-info {
+    padding: 10px 12px;
+  }
+  .card-name {
+    font-size: 0.82rem;
+    color: #bbb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .card-meta {
+    font-size: 0.72rem;
+    color: #555;
+  }
+  .card-entries {
+    margin-top: 8px;
+    max-height: 80px;
+    overflow-y: auto;
+    font-size: 0.68rem;
+    color: #555;
+    line-height: 1.5;
+  }
+  .card-entries .img-entry { color: #5b8dd9; }
+  .card-thumb-path {
+    font-size: 0.68rem;
+    color: #4a7a4a;
+    margin-top: 4px;
+    word-break: break-all;
+  }
+  .error-badge {
+    font-size: 0.72rem;
+    color: #a04040;
+    margin-top: 4px;
+  }
+  .loading {
+    color: #555;
+    font-size: 0.82rem;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 2px solid #333;
+    border-top-color: #777;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<h1>Peekable</h1>
+<p class="subtitle">Creative Archive Previewer &mdash; <a href="https://ryanseslow.com" target="_blank">ryanseslow.com</a></p>
+
+<div class="drop-zone" id="dropZone">
+  <input type="file" id="fileInput" multiple>
+  <div class="drop-label">
+    <strong>Drop files here or click to browse</strong>
+    Reads the embedded thumbnail from any ZIP-based archive
+    <div class="formats">.dn &nbsp;&bull;&nbsp; .sketch &nbsp;&bull;&nbsp; .procreate &nbsp;&bull;&nbsp; .key &nbsp;&bull;&nbsp; .pages &nbsp;&bull;&nbsp; .docx &nbsp;&bull;&nbsp; .epub &nbsp;&bull;&nbsp; .zip &nbsp;&bull;&nbsp; and more</div>
+  </div>
+</div>
+
+<div class="controls" id="controls" style="display:none">
+  <input type="text" id="filterInput" placeholder="Filter by filename…">
+  <select id="sortSelect">
+    <option value="name">Sort: Name</option>
+    <option value="size">Sort: File Size</option>
+  </select>
+  <label><input type="checkbox" id="thumbsOnly"> Thumbnails only</label>
+  <button class="btn" id="clearBtn">Clear all</button>
+</div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+
+<script>
+const THUMB_PATHS = [
+  'thumbnail.png','Thumbnail.png','thumbnail.jpg','Thumbnail.jpg',
+  'preview.png','Preview.png','preview.jpg','Preview.jpg',
+  'metadata/thumbnail.png','metadata/Thumbnail.png','metadata/preview.png',
+  'renditions/thumbnail.png','renditions/preview.png',
+  '.thumbnail.png',
+  'cloud-content/thumbnail.png','cloud-content/preview.png',
+  'QuickLook/Thumbnail.png','QuickLook/thumbnail.png','QuickLook/Preview.png',
+  'preview/thumbnail.png','preview/Preview.png',
+];
+
+let allFiles = [];
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const grid = document.getElementById('grid');
+const controls = document.getElementById('controls');
+const filterInput = document.getElementById('filterInput');
+const sortSelect = document.getElementById('sortSelect');
+const thumbsOnly = document.getElementById('thumbsOnly');
+const clearBtn = document.getElementById('clearBtn');
+const stats = document.getElementById('stats');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files));
+});
+fileInput.addEventListener('change', () => handleFiles(Array.from(fileInput.files)));
+filterInput.addEventListener('input', renderGrid);
+sortSelect.addEventListener('change', renderGrid);
+thumbsOnly.addEventListener('change', renderGrid);
+clearBtn.addEventListener('click', () => {
+  allFiles = [];
+  grid.innerHTML = '';
+  controls.style.display = 'none';
+  stats.textContent = '';
+  fileInput.value = '';
+});
+
+async function handleFiles(files) {
+  controls.style.display = 'flex';
+  for (const file of files) {
+    const existing = allFiles.find(f => f.name === file.name && f.size === file.size);
+    if (existing) continue;
+    const entry = { name: file.name, size: file.size, status: 'loading', thumb: null, thumbPath: null, entries: [], error: null };
+    allFiles.push(entry);
+    renderGrid();
+    try {
+      const zip = await JSZip.loadAsync(file);
+      entry.entries = Object.keys(zip.files).sort();
+
+      // Try known thumbnail paths first
+      let thumbBlob = null;
+      let thumbPath = null;
+      for (const path of THUMB_PATHS) {
+        if (zip.files[path]) {
+          thumbBlob = await zip.files[path].async('blob');
+          thumbPath = path;
+          break;
+        }
+      }
+
+      // Fallback: any image file in the ZIP
+      if (!thumbBlob) {
+        for (const entryName of entry.entries) {
+          const lower = entryName.toLowerCase();
+          if (!zip.files[entryName].dir && (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp') || lower.endsWith('.gif'))) {
+            thumbBlob = await zip.files[entryName].async('blob');
+            thumbPath = entryName;
+            break;
+          }
+        }
+      }
+
+      if (thumbBlob) {
+        entry.thumb = URL.createObjectURL(thumbBlob);
+        entry.thumbPath = thumbPath;
+      }
+      entry.status = 'done';
+    } catch(err) {
+      entry.status = 'error';
+      entry.error = err.message;
+    }
+    renderGrid();
+  }
+}
+
+function fmt(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function renderGrid() {
+  const q = filterInput.value.toLowerCase();
+  const onlyThumbs = thumbsOnly.checked;
+  const sortBy = sortSelect.value;
+
+  let visible = allFiles.filter(f => f.name.toLowerCase().includes(q));
+  if (onlyThumbs) visible = visible.filter(f => f.thumb);
+  if (sortBy === 'name') visible.sort((a,b) => a.name.localeCompare(b.name));
+  if (sortBy === 'size') visible.sort((a,b) => b.size - a.size);
+
+  const thumbCount = allFiles.filter(f => f.thumb).length;
+  stats.textContent = `${allFiles.length} file${allFiles.length !== 1 ? 's' : ''} loaded — ${thumbCount} with thumbnails`;
+
+  grid.innerHTML = '';
+  for (const f of visible) {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    let thumbHtml = '';
+    if (f.status === 'loading') {
+      thumbHtml = `<div class="no-thumb"><span class="loading"><span class="spinner"></span></span></div>`;
+    } else if (f.thumb) {
+      thumbHtml = `<img class="thumb" src="${f.thumb}" alt="${f.name}">`;
+    } else {
+      thumbHtml = `<div class="no-thumb">◻</div>`;
+    }
+
+    const imgEntries = f.entries.filter(e => {
+      const l = e.toLowerCase();
+      return l.endsWith('.png')||l.endsWith('.jpg')||l.endsWith('.jpeg')||l.endsWith('.webp')||l.endsWith('.gif');
+    });
+    const entriesHtml = f.entries.slice(0,30).map(e => {
+      const isImg = imgEntries.includes(e);
+      return `<div class="${isImg ? 'img-entry' : ''}">${e}</div>`;
+    }).join('') + (f.entries.length > 30 ? `<div>… +${f.entries.length - 30} more</div>` : '');
+
+    card.innerHTML = `
+      ${thumbHtml}
+      <div class="card-info">
+        <div class="card-name" title="${f.name}">${f.name}</div>
+        <div class="card-meta">${fmt(f.size)} &nbsp;&bull;&nbsp; ${f.entries.length} entries</div>
+        ${f.thumbPath ? `<div class="card-thumb-path">↳ ${f.thumbPath}</div>` : ''}
+        ${f.error ? `<div class="error-badge">⚠ ${f.error}</div>` : ''}
+        <div class="card-entries">${entriesHtml}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+</script>
+</body>
+</html>
