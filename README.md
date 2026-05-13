@@ -32,7 +32,7 @@ Any file that is secretly a ZIP archive works. Formats confirmed or likely to wo
 
 ## How to use
 
-1. Open `peekable.html` in any modern browser (Chrome, Firefox, Safari, Edge).
+1. Open https://ryanseslow.github.io/peekable/peekable.html in any modern browser (Chrome, Firefox, Safari, Edge).
 2. Drag files onto the drop zone, or click to browse.
 3. Thumbnails appear immediately — no internet connection required after the page loads.
 
