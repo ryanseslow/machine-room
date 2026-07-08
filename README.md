@@ -61,6 +61,39 @@ All processing is local. No files leave your machine.
 
 ---
 
+## Batch mode (CLI)
+
+`peekable_batch.py` is the headless version of the same idea: instead of dragging one file into a browser, point it at an entire folder and it previews every creative file it finds. Built for archives with thousands of files (external drives, cloud folders, studio backups).
+
+It keeps Peekable's core intact (the same known thumbnail paths, the same crack-the-ZIP-then-fall-back-to-any-image logic, using Python's `zipfile` in place of JSZip) and extends it with two more engines so it can preview anything, not just ZIP formats:
+
+- **ZIP-based creative files** (`.sketch`, `.procreate`, `.key`, `.pages`, `.docx`, `.epub`, `.dn`, and more): extract the embedded thumbnail.
+- **Raster** (`.jpg`, `.png`, `.gif`, `.tiff`): downscale with `sips`.
+- **Adobe and vector** (`.psd`, `.ai`, `.eps`, `.pdf`, `.indd`, `.svg`): pull the embedded preview via `sips` / `qlmanage`.
+
+### Use it as a command
+
+```bash
+python3 peekable_batch.py /path/to/archive --gallery previews.html
+```
+
+Walks the folder, writes a jpeg thumbnail for every creative file into `peekable-thumbs/`, and builds a single browsable HTML gallery. Resumable: rerun it and it skips anything already rendered.
+
+Options: `--out DIR` (thumbnail folder), `--px N` (max edge, default 240), `--gallery FILE.html`.
+
+### Use it as a library
+
+```python
+from peekable_batch import thumb_for
+thumb_for("Local Stop.psd", "out.jpg", px=240)   # -> True on success
+```
+
+One call, any creative file, one jpeg preview out.
+
+Requires macOS (`sips` and `qlmanage` are built in). No third-party packages.
+
+---
+
 ## License
 
 MIT. Use it, fork it, ship it.
