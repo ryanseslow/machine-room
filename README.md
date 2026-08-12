@@ -61,20 +61,6 @@ All processing is local. No files leave your machine.
 
 ---
 
-## Companion app: Brightside ☀️
-
-`brightside.html` is a sibling tool in the same spirit — a single, self-contained, client-side page that **turns anything into something positive and good.**
-
-Paste a text message, an email, or a review; drop in a URL; or upload a **screenshot** (read on-device with OCR) — and Brightside reframes the content into something kind, hopeful, and encouraging. A "Sunshine" slider goes from a gentle nudge to maximum sunshine.
-
-- **Fully offline built-in engine** — a reframing dictionary + affirmations, no keys, nothing uploaded.
-- **Optional AI mode** — bring your own Anthropic (Claude) API key for richer, more human rewrites. The key is stored only in your own browser.
-- Same philosophy as Peekable: one HTML file, no build step, no server, your words stay yours.
-
-Open `brightside.html` in any modern browser and start brightening.
-
----
-
 ## License
 
 MIT. Use it, fork it, ship it.
