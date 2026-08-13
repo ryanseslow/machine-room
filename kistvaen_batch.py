@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-peekable_batch.py — batch, path-based port of Peekable (ryanseslow.com/peekable).
+kistvaen_batch.py — batch, path-based port of kistvaen.html.
 
-Ryan's original Peekable is a browser drag-drop tool: open a ZIP-based creative
+Kistvaen in the browser is a drag-drop tool: open a ZIP-based creative
 file (.sketch/.procreate/.key/.pages/.docx/.epub/.dn), find the embedded
 thumbnail, show it. This is that idea, ported to run over the whole archive from
 the command line — no dragging, thousands of files at once — and extended with
@@ -12,7 +12,7 @@ It is the shared previewer engine for the archive-expansion work (external drive
 iCloud studio masters, Dropbox).
 
 Engines, by file type:
-  ZIP-based creative  -> crack container, pull embedded thumbnail   (the Peekable port)
+  ZIP-based creative  -> crack container, pull embedded thumbnail   (the Kistvaen port)
   raster              -> sips downscale
   Adobe / vector / pdf-> qlmanage / sips embedded-preview extraction
 
@@ -21,7 +21,7 @@ Public API:
   which_engine(ext)           -> str      # 'zip' | 'raster' | 'adobe' | None
 
 CLI:
-  python3 peekable_batch.py <root> [--out DIR] [--px 240] [--gallery FILE.html]
+  python3 kistvaen_batch.py <root> [--out DIR] [--px 240] [--gallery FILE.html]
 """
 
 import argparse
@@ -33,8 +33,8 @@ import sys
 import zipfile
 
 # ---------------------------------------------------------------------------
-# Peekable's known embedded-thumbnail paths inside ZIP-based creative files.
-# Ported verbatim from peekable.html, plus a few iWork/Sketch additions.
+# Kistvaen's known embedded-thumbnail paths inside ZIP-based creative files.
+# Ported verbatim from kistvaen.html, plus a few iWork/Sketch additions.
 # ---------------------------------------------------------------------------
 THUMB_PATHS = [
     "thumbnail.png", "Thumbnail.png", "thumbnail.jpg", "Thumbnail.jpg",
@@ -52,7 +52,7 @@ THUMB_PATHS = [
     "previews/preview.png",
 ]
 
-# ZIP-container creative formats — Peekable's home turf.
+# ZIP-container creative formats — Kistvaen's home turf.
 ZIP_EXTS = {
     "sketch", "procreate", "key", "pages", "numbers", "dn", "idraw", "graffle",
     "docx", "pptx", "xlsx", "epub", "kra", "ora", "afphoto", "afdesign", "zip",
@@ -75,12 +75,12 @@ def which_engine(ext):
 
 
 # ---------------------------------------------------------------------------
-# Engine 1: the Peekable port — pull the embedded thumbnail out of a ZIP file.
+# Engine 1: the Kistvaen port — pull the embedded thumbnail out of a ZIP file.
 # ---------------------------------------------------------------------------
 def extract_zip_thumbnail(src):
     """Return raw image bytes of the embedded thumbnail, or None.
 
-    Mirrors peekable.html: try the known THUMB_PATHS first, then fall back to
+    Mirrors kistvaen.html: try the known THUMB_PATHS first, then fall back to
     the first image entry anywhere in the archive.
     """
     try:
@@ -187,7 +187,7 @@ def thumb_for(src, dst, px=240):
         if engine == "adobe":
             return _adobe_thumbnail(src, dst, px)
         if engine == "zip":
-            data = extract_zip_thumbnail(src)   # <-- the Peekable port
+            data = extract_zip_thumbnail(src)   # <-- the Kistvaen port
             if data:
                 return _bytes_to_jpeg(data, dst, px)
             return False
@@ -244,8 +244,8 @@ def build_gallery(rendered, out_html):
                      f'<span style="color:#5b8dd9">{ext.upper()}</span></div></div>')
     html = (f"<!doctype html><meta charset=utf-8>"
             f"<meta name=viewport content='width=device-width,initial-scale=1'>"
-            f"<title>Peekable — archive previews</title><style>{css}</style>"
-            f"<h2>Peekable batch — {len(rendered)} previews</h2>"
+            f"<title>Kistvaen — archive previews</title><style>{css}</style>"
+            f"<h2>Kistvaen batch — {len(rendered)} previews</h2>"
             f"<div class=g>{''.join(cells)}</div>")
     with open(out_html, "w") as f:
         f.write(html)
@@ -253,9 +253,9 @@ def build_gallery(rendered, out_html):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Peekable — batch archive previewer")
+    ap = argparse.ArgumentParser(description="Kistvaen — batch archive previewer")
     ap.add_argument("root", help="folder to scan (external drive, Dropbox, etc.)")
-    ap.add_argument("--out", default="peekable-thumbs", help="thumbnail output dir")
+    ap.add_argument("--out", default="kistvaen-thumbs", help="thumbnail output dir")
     ap.add_argument("--px", type=int, default=240, help="max thumbnail edge (px)")
     ap.add_argument("--gallery", help="also write an HTML gallery to this path")
     a = ap.parse_args()

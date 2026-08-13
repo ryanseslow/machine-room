@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+kistvaen-thumbs/
+.DS_Store
