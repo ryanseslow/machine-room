@@ -7,6 +7,7 @@ leaves your machine.
 | Tool | What it does | Open it |
 |------|--------------|---------|
 | Kistvaen | Reads the embedded thumbnail out of any ZIP-based creative file | [kistvaen.html](https://ryanseslow.github.io/machine-room/kistvaen.html) |
+| Ruderal | Finds live-but-outdated Brooklyn business websites worth redesigning | [ruderal.html](https://ryanseslow.github.io/machine-room/ruderal.html) |
 
 More tools land here as they finish.
 
@@ -113,6 +114,58 @@ thumb_for("Local Stop.psd", "out.jpg", px=240)   # -> True on success
 One call, any creative file, one jpeg preview out.
 
 Requires macOS (`sips` and `qlmanage` are built in). No third-party packages.
+
+---
+
+# Ruderal
+
+Finds live-but-outdated Brooklyn business websites that need a redesign. A lead tool for
+design and dev outreach. Single HTML file, no build, no API keys, nothing leaves your browser.
+
+Open [ruderal.html](https://ryanseslow.github.io/machine-room/ruderal.html).
+
+In botany, a ruderal is a plant that colonizes disturbed, neglected ground. Rubble lots,
+roadsides, the cracks in a sidewalk. That is where these businesses are: still standing,
+still trading, on ground nobody has tended in a decade.
+
+## What it does
+
+1. Discovers real businesses in Brooklyn (name, website, address, phone) from OpenStreetMap.
+   Pick a neighborhood or the whole borough, and a business type: restaurants, shops,
+   services, health, trades.
+2. Checks each site's age against the Wayback Machine. Only sites first archived 5 or more
+   years ago count as old.
+3. Scans each live page for outdated-tech signals: no mobile viewport, no HTTPS, Flash,
+   `<marquee>`, `<font>`, framesets, table-based layouts, old jQuery, FrontPage, Dreamweaver,
+   stale copyright years, "best viewed in IE" and more.
+4. Ranks leads by an opportunity score (age plus severity of issues) into Hot, Warm, Mild, Low.
+
+## Using it
+
+Click Find leads. Cards fill in as each site is analyzed, with age and live scan running in
+parallel a few at a time.
+
+Filter to "5+ yrs & outdated only" for the real leads, or "No mobile support". Sort by score,
+age or name, and search by name or domain.
+
+Draft outreach generates a pitch e-mail naming the exact problems found (mobile, HTTPS, stale
+copyright, Flash), pre-filled with Ryan's signature. Copy it or open it in your mail app.
+Export CSV drops the whole list into a spreadsheet or CRM.
+
+## How the data flows
+
+- OpenStreetMap Overpass API for business discovery. Free, no key.
+- Wayback Machine CDX API for site age. Free, no key, and the primary 5-year gate.
+- Public CORS proxies to read the live page HTML for the tech scan. These are free and get
+  rate-limited. If a scan comes back empty, age detection still works and the tool says so.
+
+Everything runs client-side. No server, no tracking, no keys.
+
+## A note on judgment
+
+The score is a starting point, not a verdict. Always look at a site before reaching out, and
+keep the outreach genuinely useful. Business data comes from OpenStreetMap and may be
+incomplete or dated.
 
 ---
 

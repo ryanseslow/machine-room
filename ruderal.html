@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruderal — Outdated Brooklyn Websites</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    color: #ddd;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px 64px;
+  }
+  h1 { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
+  .subtitle a { color: #6a8ec9; text-decoration: none; }
+  .panel {
+    background: #171717;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .panel h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #777; margin-bottom: 14px; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="text"], input[type="number"] {
+    background: #1c1c1c; border: 1px solid #333; color: #ddd;
+    border-radius: 6px; padding: 8px 11px; font-size: 0.88rem; min-width: 150px;
+  }
+  select:focus, input:focus { outline: none; border-color: #5b8dd9; }
+  .btn {
+    background: #2a3f66; border: 1px solid #3a5488; color: #dbe6fb;
+    border-radius: 6px; padding: 9px 18px; font-size: 0.9rem; cursor: pointer;
+    font-weight: 600; transition: background 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: #35528a; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.ghost { background: #222; border-color: #333; color: #bbb; font-weight: 500; }
+  .btn.ghost:hover { background: #2a2a2a; color: #fff; }
+  .btn.small { padding: 5px 11px; font-size: 0.76rem; }
+  .hint { font-size: 0.74rem; color: #555; margin-top: 10px; line-height: 1.5; }
+  .hint code { color: #7a9; background: #1a1a1a; padding: 1px 5px; border-radius: 3px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .toolbar input[type="text"] { flex: 1; min-width: 160px; }
+  .toolbar label { font-size: 0.82rem; color: #999; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+  .status { font-size: 0.85rem; color: #888; margin-bottom: 16px; min-height: 20px; line-height: 1.5; }
+  .status .spinner {
+    display: inline-block; width: 11px; height: 11px; border: 2px solid #333;
+    border-top-color: #5b8dd9; border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin-right: 7px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .bar { height: 4px; background: #222; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .bar > div { height: 100%; background: #5b8dd9; width: 0%; transition: width 0.3s; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+  .card {
+    background: #181818; border: 1px solid #262626; border-radius: 10px;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #3a5488; }
+  .card.pending { opacity: 0.55; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card-name { font-size: 1.02rem; font-weight: 600; color: #fff; line-height: 1.3; }
+  .card-cat { font-size: 0.72rem; color: #777; margin-top: 2px; text-transform: capitalize; }
+  .score {
+    flex-shrink: 0; text-align: center; border-radius: 8px; padding: 6px 10px;
+    min-width: 58px; border: 1px solid;
+  }
+  .score .num { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+  .score .lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; opacity: 0.85; }
+  .score.hot   { background: #3a1f1f; border-color: #7a3a3a; color: #ff9b9b; }
+  .score.warm  { background: #3a301f; border-color: #7a5f3a; color: #ffcf8f; }
+  .score.mild  { background: #23331f; border-color: #4a6a3a; color: #b6e59b; }
+  .score.cold  { background: #1f2833; border-color: #33465a; color: #8fb3d9; }
+
+  .meta { font-size: 0.78rem; color: #999; line-height: 1.6; }
+  .meta a { color: #6a8ec9; text-decoration: none; word-break: break-all; }
+  .meta a:hover { text-decoration: underline; }
+  .meta .k { color: #666; }
+
+  .age-badge { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; background: #1f2833; color: #8fb3d9; border: 1px solid #33465a; }
+  .age-badge.old { background: #3a1f1f; color: #ffabab; border-color: #7a3a3a; }
+
+  .flags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag { font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; background: #241a1a; color: #d99; border: 1px solid #3a2626; }
+  .flag.info { background: #1a2024; color: #9bb; border-color: #263236; }
+
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  .live-dot.up { background: #5ac26a; }
+  .live-dot.down { background: #c25a5a; }
+  .live-dot.unknown { background: #888; }
+
+  .empty { color: #555; font-size: 0.9rem; text-align: center; padding: 40px 0; }
+
+  dialog { border: 1px solid #333; background: #181818; color: #ddd; border-radius: 12px; padding: 0; max-width: 640px; width: 92%; }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-head { padding: 16px 20px; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; }
+  .modal-head h3 { font-size: 1rem; color: #fff; }
+  .modal-body { padding: 20px; }
+  .modal-body textarea { width: 100%; min-height: 240px; background: #1c1c1c; border: 1px solid #333; color: #ddd; border-radius: 8px; padding: 12px; font-size: 0.85rem; line-height: 1.5; font-family: inherit; resize: vertical; }
+  .modal-foot { padding: 14px 20px; border-top: 1px solid #262626; display: flex; gap: 10px; justify-content: flex-end; }
+  .x { cursor: pointer; color: #888; font-size: 1.3rem; line-height: 1; background: none; border: none; }
+  .x:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>Ruderal</h1>
+<p class="subtitle">Live-but-outdated business websites ripe for a redesign &mdash; <a href="https://ryanseslow.com" target="_blank" rel="noopener">ryanseslow.com</a></p>
+
+<div class="panel">
+  <h2>1 &middot; Find businesses</h2>
+  <div class="row">
+    <div class="field">
+      <label for="area">Area</label>
+      <select id="area">
+        <option value="whole">All of Brooklyn</option>
+        <optgroup label="Neighborhoods">
+          <option value="williamsburg">Williamsburg</option>
+          <option value="bushwick">Bushwick</option>
+          <option value="bedstuy">Bedford-Stuyvesant</option>
+          <option value="parkslope">Park Slope</option>
+          <option value="dumbo">DUMBO / Brooklyn Heights</option>
+          <option value="bayridge">Bay Ridge</option>
+          <option value="sunsetpark">Sunset Park</option>
+          <option value="greenpoint">Greenpoint</option>
+          <option value="crownheights">Crown Heights</option>
+          <option value="flatbush">Flatbush</option>
+          <option value="coneyisland">Coney Island</option>
+          <option value="brightonbeach">Brighton Beach</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="field">
+      <label for="category">Business type</label>
+      <select id="category">
+        <option value="all">All types</option>
+        <option value="food">Restaurants / cafes / bars</option>
+        <option value="shop">Shops &amp; retail</option>
+        <option value="services">Professional services</option>
+        <option value="health">Health &amp; wellness</option>
+        <option value="craft">Trades &amp; craft</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="limit">Max results</label>
+      <input type="number" id="limit" value="40" min="5" max="200" step="5">
+    </div>
+    <button class="btn" id="findBtn">Find leads</button>
+  </div>
+  <div class="hint">
+    Pulls real businesses (name, website, address, phone) from <code>OpenStreetMap</code>, checks each site's age against the
+    <code>Wayback Machine</code>, and scans the live page for outdated-tech signals. All free, no API keys, nothing leaves your browser.
+    Larger areas + higher limits take longer.
+  </div>
+</div>
+
+<div id="results" style="display:none">
+  <div class="panel">
+    <h2>2 &middot; Filter &amp; rank</h2>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Search name, category, or domain…">
+      <div class="field" style="min-width:auto">
+        <select id="sortSel">
+          <option value="score">Sort: Opportunity score</option>
+          <option value="age">Sort: Oldest site</option>
+          <option value="name">Sort: Name</option>
+        </select>
+      </div>
+      <label><input type="checkbox" id="onlyQualified" checked> 5+ yrs &amp; outdated only</label>
+      <label><input type="checkbox" id="onlyMobile"> No mobile support</label>
+      <button class="btn ghost small" id="csvBtn">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<dialog id="mailModal">
+  <div class="modal-head">
+    <h3>Outreach draft</h3>
+    <button class="x" id="modalClose">&times;</button>
+  </div>
+  <div class="modal-body">
+    <textarea id="mailText" spellcheck="false"></textarea>
+  </div>
+  <div class="modal-foot">
+    <button class="btn ghost" id="copyMail">Copy to clipboard</button>
+    <button class="btn" id="mailtoBtn">Open in email app</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+
+// ---- Config ---------------------------------------------------------------
+
+const CURRENT_YEAR = new Date().getFullYear();
+const OLD_THRESHOLD_YEARS = 5;
+
+// Kings County (Brooklyn) admin area = 3600000000 + OSM relation 369518
+const BROOKLYN_AREA_ID = 3600369518;
+
+// Neighborhood bounding boxes: [south, west, north, east]
+const NEIGHBORHOODS = {
+  williamsburg:  [40.700, -73.968, 40.723, -73.930],
+  bushwick:      [40.686, -73.933, 40.710, -73.900],
+  bedstuy:       [40.677, -73.957, 40.700, -73.910],
+  parkslope:     [40.662, -73.992, 40.685, -73.965],
+  dumbo:         [40.693, -74.002, 40.706, -73.985],
+  bayridge:      [40.618, -74.043, 40.646, -74.018],
+  sunsetpark:    [40.636, -74.020, 40.665, -73.990],
+  greenpoint:    [40.720, -73.958, 40.739, -73.930],
+  crownheights:  [40.664, -73.955, 40.681, -73.918],
+  flatbush:      [40.630, -73.968, 40.660, -73.945],
+  coneyisland:   [40.571, -73.995, 40.585, -73.960],
+  brightonbeach: [40.573, -73.972, 40.585, -73.948],
+};
+
+// Category -> Overpass tag filters
+const CATEGORY_FILTERS = {
+  all:      ['["shop"]', '["amenity"~"restaurant|cafe|bar|pub|fast_food|pharmacy|clinic|dentist|doctors|veterinary"]', '["office"]', '["craft"]', '["leisure"~"fitness_centre|sports_centre"]', '["healthcare"]'],
+  food:     ['["amenity"~"restaurant|cafe|bar|pub|fast_food|ice_cream|biergarten"]'],
+  shop:     ['["shop"]'],
+  services: ['["office"]', '["amenity"~"lawyer|accountant"]'],
+  health:   ['["amenity"~"pharmacy|clinic|dentist|doctors|veterinary"]', '["healthcare"]', '["leisure"~"fitness_centre|sports_centre"]'],
+  craft:    ['["craft"]', '["shop"~"car_repair|hairdresser|florist|locksmith|electrician|plumber"]'],
+};
+
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
+
+// CORS proxies for reading live page HTML (tried in order).
+const PROXIES = [
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  u => 'https://thingproxy.freeboard.io/fetch/' + u,
+];
+
+const CONCURRENCY = 3;
+
+// ---- State ----------------------------------------------------------------
+
+let leads = [];        // all discovered leads with analysis
+let analyzedCount = 0;
+
+// ---- Elements -------------------------------------------------------------
+
+const el = id => document.getElementById(id);
+const findBtn = el('findBtn');
+const results = el('results');
+const grid = el('grid');
+const statusEl = el('status');
+
+// ---- Overpass discovery ---------------------------------------------------
+
+function buildQuery(area, category) {
+  const filters = CATEGORY_FILTERS[category] || CATEGORY_FILTERS.all;
+  let scope, clauses;
+  if (area === 'whole') {
+    scope = `area(${BROOKLYN_AREA_ID})->.bk;`;
+    clauses = filters.map(f => `nwr${f}["website"](area.bk);nwr${f}["contact:website"](area.bk);`).join('');
+  } else {
+    const b = NEIGHBORHOODS[area];
+    const bbox = `(${b[0]},${b[1]},${b[2]},${b[3]})`;
+    scope = '';
+    clauses = filters.map(f => `nwr${f}["website"]${bbox};nwr${f}["contact:website"]${bbox};`).join('');
+  }
+  return `[out:json][timeout:90];${scope}(${clauses});out center tags 400;`;
+}
+
+async function runOverpass(query) {
+  let lastErr;
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: query,
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('All Overpass endpoints failed');
+}
+
+function normalizeUrl(raw) {
+  if (!raw) return null;
+  let u = raw.trim();
+  if (!/^https?:\/\//i.test(u)) u = 'http://' + u;
+  try {
+    const parsed = new URL(u);
+    return { href: parsed.href, origin: parsed.origin, host: parsed.hostname.replace(/^www\./, ''), isHttps: parsed.protocol === 'https:' };
+  } catch { return null; }
+}
+
+function parseElements(json) {
+  const out = [];
+  const seen = new Set();
+  for (const elm of (json.elements || [])) {
+    const t = elm.tags || {};
+    const rawUrl = t.website || t['contact:website'];
+    const name = t.name;
+    if (!rawUrl || !name) continue;
+    const url = normalizeUrl(rawUrl);
+    if (!url) continue;
+    // Skip social-media-only "websites"
+    if (/facebook\.|instagram\.|linktr\.ee|twitter\.|x\.com|yelp\.|google\.|linkedin\./i.test(url.host)) continue;
+    if (seen.has(url.host)) continue;
+    seen.add(url.host);
+
+    const addrParts = [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' ');
+    out.push({
+      name,
+      category: t.shop || t.amenity || t.office || t.craft || t.healthcare || t.leisure || 'business',
+      url,
+      address: addrParts || null,
+      phone: t.phone || t['contact:phone'] || null,
+      email: t.email || t['contact:email'] || null,
+      // analysis fields (filled later)
+      live: 'unknown', firstYear: null, ageYears: null, lastYear: null,
+      flags: [], score: null, analyzed: false,
+    });
+  }
+  return out;
+}
+
+// ---- Age check (Wayback Machine CDX) --------------------------------------
+
+async function checkAge(host) {
+  // Earliest + latest snapshot of the domain.
+  const base = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(host)}&output=json&fl=timestamp&collapse=timestamp:4`;
+  try {
+    const res = await fetch(base + '&limit=1&sort=asc');
+    const first = await res.json();
+    let firstYear = null, lastYear = null;
+    if (Array.isArray(first) && first.length > 1) {
+      firstYear = parseInt(first[1][0].slice(0, 4), 10);
+    }
+    const res2 = await fetch(base + '&limit=1&sort=desc');
+    const last = await res2.json();
+    if (Array.isArray(last) && last.length > 1) {
+      lastYear = parseInt(last[1][0].slice(0, 4), 10);
+    }
+    return { firstYear, lastYear, ageYears: firstYear ? CURRENT_YEAR - firstYear : null };
+  } catch {
+    return { firstYear: null, lastYear: null, ageYears: null };
+  }
+}
+
+// ---- Live page fetch + outdated-signal scan -------------------------------
+
+async function fetchHtml(href) {
+  for (const proxy of PROXIES) {
+    try {
+      const res = await fetch(proxy(href), { redirect: 'follow' });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.length > 200) return text;
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
+function scanHtml(html, urlInfo) {
+  const flags = [];
+  const lower = html.toLowerCase();
+  const head = lower.slice(0, 6000);
+
+  // Mobile responsiveness
+  const hasViewport = /<meta[^>]+name=["']?viewport/i.test(html);
+  if (!hasViewport) flags.push({ t: 'No mobile viewport', w: 22, key: 'nomobile' });
+
+  // HTTPS
+  if (!urlInfo.isHttps) flags.push({ t: 'No HTTPS', w: 14, key: 'nohttps' });
+
+  // Flash / legacy embeds
+  if (/\.swf|application\/x-shockwave-flash|<embed[^>]+flash/i.test(html)) flags.push({ t: 'Flash content', w: 20 });
+
+  // Framesets
+  if (/<frameset|<frame\b/i.test(html)) flags.push({ t: 'Frameset layout', w: 20 });
+
+  // Deprecated tags
+  if (/<marquee/i.test(html)) flags.push({ t: '<marquee>', w: 12 });
+  if (/<blink/i.test(html)) flags.push({ t: '<blink>', w: 12 });
+  if (/<center[\s>]/i.test(html)) flags.push({ t: '<center> tags', w: 8 });
+  if (/<font[\s>]/i.test(html)) flags.push({ t: '<font> tags', w: 10 });
+
+  // Table-based layout (heuristic)
+  const tableCount = (lower.match(/<table/g) || []).length;
+  const layoutTable = /<table[^>]+(cellpadding|cellspacing|bgcolor|width=["']?\d{3})/i.test(html);
+  if (tableCount >= 3 && layoutTable) flags.push({ t: 'Table-based layout', w: 14 });
+
+  // WYSIWYG generators
+  if (/frontpage/i.test(head)) flags.push({ t: 'MS FrontPage', w: 16 });
+  if (/name=["']?generator["'][^>]*dreamweaver/i.test(head) || /dreamweaver/i.test(head)) flags.push({ t: 'Dreamweaver', w: 12 });
+  if (/name=["']?generator["'][^>]*(wix|godaddy website builder)/i.test(head)) flags.push({ t: 'Old site builder', w: 6, info: true });
+
+  // Old jQuery
+  const jq = html.match(/jquery[-\/]?(\d+)\.(\d+)/i);
+  if (jq && parseInt(jq[1], 10) <= 1) flags.push({ t: 'jQuery ' + jq[1] + '.' + jq[2], w: 10 });
+
+  // Legacy doctype / XHTML
+  if (/xhtml 1\.|html 4\.01/i.test(head)) flags.push({ t: 'Legacy doctype', w: 8 });
+
+  // "Best viewed in"
+  if (/best viewed (in|with)|optimized for internet explorer|download.{0,20}internet explorer/i.test(lower)) {
+    flags.push({ t: '“Best viewed in IE”', w: 14 });
+  }
+
+  // Fixed-width pixel layout in body
+  if (/width\s*[:=]\s*["']?(9\d\d|1000|1024)(px)?/i.test(html) && !hasViewport) {
+    flags.push({ t: 'Fixed desktop width', w: 8 });
+  }
+
+  // Stale copyright year
+  const years = [...html.matchAll(/(?:©|&copy;|copyright)\s*(?:&copy;)?\s*(?:\d{4}\s*[-–]\s*)?(20[0-2]\d)/gi)]
+    .map(m => parseInt(m[1], 10)).filter(y => y >= 2000 && y <= CURRENT_YEAR);
+  if (years.length) {
+    const newest = Math.max(...years);
+    if (CURRENT_YEAR - newest >= OLD_THRESHOLD_YEARS) {
+      flags.push({ t: `Copyright ${newest}`, w: 12 });
+    }
+  }
+
+  return flags;
+}
+
+function computeScore(lead) {
+  let score = 0;
+  // Outdated signals
+  for (const f of lead.flags) if (!f.info) score += (f.w || 6);
+  // Age contribution
+  if (lead.ageYears != null) {
+    if (lead.ageYears >= 15) score += 24;
+    else if (lead.ageYears >= 10) score += 18;
+    else if (lead.ageYears >= OLD_THRESHOLD_YEARS) score += 12;
+  }
+  return Math.min(100, score);
+}
+
+function qualifies(lead) {
+  const old = lead.ageYears != null && lead.ageYears >= OLD_THRESHOLD_YEARS;
+  const outdated = lead.flags.some(f => !f.info);
+  return old && outdated && lead.live !== 'down';
+}
+
+// ---- Orchestration --------------------------------------------------------
+
+async function analyzeLead(lead) {
+  const age = await checkAge(lead.url.host);
+  lead.firstYear = age.firstYear;
+  lead.lastYear = age.lastYear;
+  lead.ageYears = age.ageYears;
+
+  const html = await fetchHtml(lead.url.href);
+  if (html) {
+    lead.live = 'up';
+    lead.flags = scanHtml(html, lead.url);
+  } else {
+    // Couldn't read the page. If Wayback saw it recently, call it live-unverified.
+    lead.live = (age.lastYear && age.lastYear >= CURRENT_YEAR - 1) ? 'unknown' : 'down';
+  }
+  lead.score = computeScore(lead);
+  lead.analyzed = true;
+  analyzedCount++;
+}
+
+async function runPool(items, worker, onProgress) {
+  let i = 0;
+  async function next() {
+    while (i < items.length) {
+      const idx = i++;
+      await worker(items[idx], idx);
+      onProgress();
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, items.length) }, next));
+}
+
+async function find() {
+  findBtn.disabled = true;
+  results.style.display = 'block';
+  grid.innerHTML = '';
+  leads = [];
+  analyzedCount = 0;
+
+  const area = el('area').value;
+  const category = el('category').value;
+  const limit = Math.max(5, Math.min(200, parseInt(el('limit').value, 10) || 40));
+
+  setStatus(true, 'Searching OpenStreetMap for Brooklyn businesses…');
+  let discovered;
+  try {
+    const json = await runOverpass(buildQuery(area, category));
+    discovered = parseElements(json);
+  } catch (e) {
+    setStatus(false, '⚠ Could not reach OpenStreetMap. Try again in a moment, or pick a smaller area. (' + e.message + ')');
+    findBtn.disabled = false;
+    return;
+  }
+
+  if (!discovered.length) {
+    setStatus(false, 'No businesses with independent websites found for that area/type. Try “All types” or a different neighborhood.');
+    findBtn.disabled = false;
+    return;
+  }
+
+  // Shuffle lightly so repeated runs surface different leads, then cap.
+  discovered.sort(() => Math.random() - 0.5);
+  leads = discovered.slice(0, limit);
+
+  renderGrid();
+  setStatus(true, `Found ${discovered.length} businesses with websites. Analyzing ${leads.length} (age + live scan)…`, 0);
+
+  await runPool(leads, analyzeLead, () => {
+    const pct = Math.round((analyzedCount / leads.length) * 100);
+    setStatus(true, `Analyzing ${analyzedCount}/${leads.length} sites…`, pct);
+    renderGrid();
+  });
+
+  const qual = leads.filter(qualifies).length;
+  const unreadable = leads.filter(l => l.live !== 'up').length;
+  let msg = `Done. ${qual} qualified lead${qual !== 1 ? 's' : ''} (live, 5+ yrs old, outdated) out of ${leads.length} analyzed. Click a card's “Draft outreach” to pitch.`;
+  if (qual === 0 && unreadable > leads.length / 2) {
+    msg += ` &nbsp;Note: ${unreadable} sites couldn't be read (a free CORS proxy was likely rate-limited) — their tech flags are missing. Uncheck “5+ yrs & outdated only” to see age-qualified sites anyway, or re-run in a minute.`;
+  }
+  setStatus(false, msg);
+  findBtn.disabled = false;
+  renderGrid();
+}
+
+// ---- Rendering ------------------------------------------------------------
+
+function setStatus(loading, msg, pct) {
+  let html = (loading ? '<span class="spinner"></span>' : '') + msg;
+  if (typeof pct === 'number') html += `<div class="bar"><div style="width:${pct}%"></div></div>`;
+  statusEl.innerHTML = html;
+}
+
+function scoreClass(s) {
+  if (s >= 60) return 'hot';
+  if (s >= 40) return 'warm';
+  if (s >= 20) return 'mild';
+  return 'cold';
+}
+function scoreLabel(s) {
+  if (s >= 60) return 'Hot';
+  if (s >= 40) return 'Warm';
+  if (s >= 20) return 'Mild';
+  return 'Low';
+}
+
+function visibleLeads() {
+  const q = el('search').value.toLowerCase().trim();
+  const onlyQ = el('onlyQualified').checked;
+  const onlyM = el('onlyMobile').checked;
+  const sort = el('sortSel').value;
+
+  let v = leads.filter(l => {
+    if (q && !(`${l.name} ${l.category} ${l.url.host}`.toLowerCase().includes(q))) return false;
+    if (onlyQ && l.analyzed && !qualifies(l)) return false;
+    if (onlyM && !l.flags.some(f => f.key === 'nomobile')) return false;
+    return true;
+  });
+
+  v.sort((a, b) => {
+    if (sort === 'name') return a.name.localeCompare(b.name);
+    if (sort === 'age') return (b.ageYears || -1) - (a.ageYears || -1);
+    return (b.score ?? -1) - (a.score ?? -1); // score
+  });
+  return v;
+}
+
+function renderGrid() {
+  const v = visibleLeads();
+  if (!v.length) {
+    grid.innerHTML = `<div class="empty">${leads.length ? 'No leads match the current filters.' : ''}</div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  for (const lead of v) grid.appendChild(renderCard(lead));
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+function renderCard(lead) {
+  const card = document.createElement('div');
+  card.className = 'card' + (lead.analyzed ? '' : ' pending');
+
+  const s = lead.score ?? 0;
+  const scoreHtml = lead.analyzed
+    ? `<div class="score ${scoreClass(s)}"><div class="num">${s}</div><div class="lbl">${scoreLabel(s)}</div></div>`
+    : `<div class="score cold"><div class="num">…</div><div class="lbl">scan</div></div>`;
+
+  const liveClass = lead.live === 'up' ? 'up' : lead.live === 'down' ? 'down' : 'unknown';
+  const liveText = lead.live === 'up' ? 'Live' : lead.live === 'down' ? 'Unreachable' : 'Live (unverified)';
+
+  let ageHtml = '';
+  if (lead.analyzed) {
+    if (lead.firstYear) {
+      const old = lead.ageYears >= OLD_THRESHOLD_YEARS;
+      ageHtml = `<span class="age-badge ${old ? 'old' : ''}">Online since ${lead.firstYear} · ${lead.ageYears} yrs</span>`;
+    } else {
+      ageHtml = `<span class="age-badge">Age unknown</span>`;
+    }
+  }
+
+  const flagsHtml = lead.flags.length
+    ? `<div class="flags">${lead.flags.map(f => `<span class="flag ${f.info ? 'info' : ''}">${esc(f.t)}</span>`).join('')}</div>`
+    : (lead.analyzed ? `<div class="flags"><span class="flag info">No obvious tech flags</span></div>` : '');
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div>
+        <div class="card-name">${esc(lead.name)}</div>
+        <div class="card-cat">${esc(lead.category)}</div>
+      </div>
+      ${scoreHtml}
+    </div>
+    <div class="meta">
+      <div><span class="live-dot ${liveClass}"></span>${liveText} &nbsp;·&nbsp; <a href="${esc(lead.url.href)}" target="_blank" rel="noopener">${esc(lead.url.host)}</a></div>
+      ${lead.address ? `<div><span class="k">Address</span> ${esc(lead.address)}</div>` : ''}
+      ${lead.phone ? `<div><span class="k">Phone</span> ${esc(lead.phone)}</div>` : ''}
+      ${lead.email ? `<div><span class="k">Email</span> ${esc(lead.email)}</div>` : ''}
+    </div>
+    ${ageHtml}
+    ${flagsHtml}
+    <div class="card-actions">
+      <button class="btn small" data-mail>Draft outreach</button>
+      <a class="btn ghost small" href="https://web.archive.org/web/2018*/${esc(lead.url.host)}" target="_blank" rel="noopener">Wayback</a>
+    </div>
+  `;
+  card.querySelector('[data-mail]').addEventListener('click', () => openMail(lead));
+  return card;
+}
+
+// ---- Outreach draft -------------------------------------------------------
+
+function buildMail(lead) {
+  const issues = lead.flags.filter(f => !f.info).map(f => f.t.toLowerCase());
+  const problemList = [];
+  if (lead.flags.some(f => f.key === 'nomobile')) problemList.push('it doesn’t display properly on phones');
+  if (lead.flags.some(f => f.key === 'nohttps')) problemList.push('it isn’t served securely over HTTPS (browsers now flag it as “Not secure”)');
+  const cy = lead.flags.find(f => /^copyright/i.test(f.t));
+  if (cy) problemList.push(`the footer still reads “${cy.t.replace('Copyright ', '© ')}”`);
+  if (lead.flags.some(f => f.t === 'Flash content')) problemList.push('it relies on Flash, which no longer runs in any modern browser');
+  if (problemList.length === 0 && issues.length) problemList.push('a few things under the hood are showing their age');
+
+  const ageLine = lead.firstYear ? ` Your site has been online since ${lead.firstYear}, and` : '';
+  const problems = problemList.length
+    ? ` I noticed ${problemList.slice(0, 3).join(', ')}.`
+    : '';
+
+  const subject = `Quick note about ${lead.url.host}`;
+  const body =
+`Hi ${lead.name} team,
+
+I'm Ryan, a Brooklyn-based designer. I came across your website and wanted to reach out.${ageLine}${problems}
+
+A refresh would make it faster, mobile-friendly, and easier for new customers to find and trust you — without changing what makes ${lead.name} great.
+
+If you're open to it, I'd be happy to send over a couple of quick ideas, no obligation. Would a short call this week work?
+
+Best,
+Ryan Seslow
+ryanseslow.com`;
+
+  return { subject, body };
+}
+
+const mailModal = el('mailModal');
+let currentMail = null;
+
+function openMail(lead) {
+  const { subject, body } = buildMail(lead);
+  currentMail = { to: lead.email || '', subject, body };
+  el('mailText').value = body;
+  mailModal.showModal();
+}
+
+el('modalClose').addEventListener('click', () => mailModal.close());
+el('copyMail').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(el('mailText').value); el('copyMail').textContent = 'Copied!'; setTimeout(() => el('copyMail').textContent = 'Copy to clipboard', 1500); }
+  catch { el('mailText').select(); document.execCommand('copy'); }
+});
+el('mailtoBtn').addEventListener('click', () => {
+  const link = `mailto:${encodeURIComponent(currentMail.to)}?subject=${encodeURIComponent(currentMail.subject)}&body=${encodeURIComponent(el('mailText').value)}`;
+  window.location.href = link;
+});
+
+// ---- CSV export -----------------------------------------------------------
+
+function exportCsv() {
+  const rows = [['Name', 'Category', 'Website', 'Address', 'Phone', 'Email', 'Online since', 'Age (yrs)', 'Live', 'Score', 'Qualified', 'Flags']];
+  for (const l of visibleLeads()) {
+    rows.push([
+      l.name, l.category, l.url.href, l.address || '', l.phone || '', l.email || '',
+      l.firstYear || '', l.ageYears ?? '', l.live, l.score ?? '',
+      qualifies(l) ? 'yes' : 'no', l.flags.map(f => f.t).join('; '),
+    ]);
+  }
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `brooklyn-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+}
+
+// ---- Wire up --------------------------------------------------------------
+
+findBtn.addEventListener('click', find);
+['search', 'sortSel', 'onlyQualified', 'onlyMobile'].forEach(id => {
+  el(id).addEventListener('input', renderGrid);
+  el(id).addEventListener('change', renderGrid);
+});
+el('csvBtn').addEventListener('click', exportCsv);
+</script>
+</body>
+</html>
