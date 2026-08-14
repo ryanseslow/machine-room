@@ -1,8 +1,11 @@
-# Media Polish AI
+# Planish
 
-**Turn rough interior photos into professional website-ready images.**
+Turn rough interior photos into professional website-ready images.
 
-Media Polish AI is a minimal Next.js web app for contractors, real estate
+To planish is to hammer sheet metal smooth, working the dents out of a surface
+until it takes a finish. That is the whole job here.
+
+Planish is a minimal Next.js web app for contractors, real estate
 agents, interior designers, and WordPress builders. Upload a poor-quality
 interior/property photo, and the app sends it to the OpenAI image edit API
 with a fixed professional interior-photography prompt, then returns an
@@ -30,7 +33,7 @@ enhanced, publication-ready image you can preview and download.
 ### 1. Install dependencies
 
 ```bash
-cd media-polish-ai
+cd planish
 npm install
 ```
 
@@ -52,7 +55,7 @@ OPENAI_API_KEY=sk-your-real-key-here
 You can create a key at <https://platform.openai.com/api-keys>.
 
 > `.env.local` is git-ignored, so your key is never committed. The key is only
-> ever used server-side inside the `/api/enhance` route — it is never sent to
+> ever used server-side inside the `/api/enhance` route. It is never sent to
 > the browser.
 
 ### 3. Run locally
@@ -89,7 +92,7 @@ Open <http://localhost:3000> in your browser. Upload a photo, click
 4. The enhanced image is returned to the browser as a base64 PNG data URL and
    shown in the **After** preview with a download button.
 
-The original photo is never stored or modified — each run produces a brand-new
+The original photo is never stored or modified. Each run produces a brand-new
 enhanced output.
 
 ### Image model
@@ -107,14 +110,14 @@ OPENAI_IMAGE_MODEL=gpt-image-1.5
 ## Project structure
 
 ```
-media-polish-ai/
+planish/
   app/
     page.tsx            # Home page (/)
     layout.tsx          # Root layout + metadata
     globals.css         # Tailwind entry
     api/
       enhance/
-        route.ts        # POST /api/enhance — calls OpenAI
+        route.ts        # POST /api/enhance, calls OpenAI
   components/
     ImageEnhancer.tsx   # Upload UI, previews, enhance + download
   lib/
@@ -132,12 +135,12 @@ media-polish-ai/
 The code includes clearly marked comments (`FUTURE:`) showing where to grow
 the MVP:
 
-- **Batch processing** — accept multiple files in `app/api/enhance/route.ts`
+- **Batch processing**: accept multiple files in `app/api/enhance/route.ts`
   and loop/parallelize calls.
-- **Presets** — turn `lib/prompts.ts` into a keyed map of styles (Real Estate,
+- **Presets**: turn `lib/prompts.ts` into a keyed map of styles (Real Estate,
   Architectural Digest, Bright & Airy, …) and select one from the UI.
-- **User accounts** — authenticate requests in the API route and track usage.
-- **WordPress plugin integration** — the `/api/enhance` endpoint can be called
+- **User accounts**: authenticate requests in the API route and track usage.
+- **WordPress plugin integration**: the `/api/enhance` endpoint can be called
   directly from a WordPress plugin/media uploader to enhance images in place.
 
 ---

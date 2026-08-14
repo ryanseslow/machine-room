@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Media Polish AI",
+  title: "Planish",
   description: "Turn rough interior photos into professional website-ready images.",
 };
 

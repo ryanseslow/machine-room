@@ -1,5 +1,5 @@
 /**
- * Fixed enhancement prompt(s) for Media Polish AI.
+ * Fixed enhancement prompt(s) for Planish.
  *
  * The MVP uses a single, hard-coded professional interior photography prompt.
  *
