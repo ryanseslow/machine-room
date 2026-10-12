@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 kistvaen-thumbs/
 .DS_Store
+
+# Personal/business config and data, never public
+.env*
+!.env*.example
+config/profile.md
+data/
+*.local.md
